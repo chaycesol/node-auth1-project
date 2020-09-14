@@ -16,14 +16,13 @@ server.use(helmet());
 server.use(express.json());
 server.use(logger());
 
-// server.use('/api/users', usersRouter); 
-server.use("/api/users",usersRouter); //uncomment this one out when you're ready for protected roots
+server.use('/api/users', usersRouter); 
+// server.use("/api/users", protected, usersRouter); //uncomment this one out when you're ready for protected roots
 server.use('/api/auth', authRouter);
 
 // Base endpoint
 server.get('/', (req, res) => {
-  
-    res.json({ api: "up", password, hash });
+    res.json({ api: "up" });
   });
   
   function protected(req, res, next) {
