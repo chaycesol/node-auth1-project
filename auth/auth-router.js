@@ -1,17 +1,23 @@
 const express = require('express');
 
+const Users = require('../users/users-model');
+
 const router = express.Router();
 
-router.get('/', (req, res) => {
-   
-   res.status(200).json({ message: 'auth endpoint working' })
-    // Users.find()
-    //     .then(users => {
-    //         res.status(200).json(users);
-    //     })
-    //     .catch(err => {
-    //         res.send(err);
-    //     })
-})
+router.post('/register', (req, res) => {
+   const userInfo = req.body;
+
+   const validationResult = validateUser(userInfo);
+
+   if(validationResult.success) {
+        Users.add(userInfo).then(inserted => {
+            res.status(201).json({data: inserted});
+        });
+   } else {
+       res.status(400).json({ 
+           message: 'Invalid information, please verify and try again' 
+        });
+   }
+});
 
 module.exports = router;

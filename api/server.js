@@ -3,7 +3,7 @@ const helmet = require('helmet');
 const cors = require('cors');
 const bcrypt = require('bcryptjs');
 const session = require('express-session');
-const KnexSessionStore = require('connect-session-knex'); // come back and put in (session) towards the end
+const KnexSessionStore = require('connect-session-knex')(session); // come back and put in (session) towards the end
 const server = express();
 
 //Routers
@@ -16,15 +16,26 @@ server.use(helmet());
 server.use(express.json());
 server.use(logger());
 
-server.use('/api/users', usersRouter); 
-// server.use("/api/users", protected, usersRouter); //uncomment this one out when you're ready for protected roots
+// server.use('/api/users', usersRouter); 
+server.use("/api/users",usersRouter); //uncomment this one out when you're ready for protected roots
 server.use('/api/auth', authRouter);
 
 // Base endpoint
 server.get('/', (req, res) => {
-    res.status(200).json({ message: 'up and running' })
-});
-
+  
+    res.json({ api: "up", password, hash });
+  });
+  
+  function protected(req, res, next) {
+    // if user logged import 
+    // otherwise
+    if(req.session.username) {
+        next();
+    } else {
+      res.status(401).json({message: 'please sign in to continue', session: req.session})
+    }
+    
+  }
 
 function logger(req, res, next) {
     return function (req, res, next) {
