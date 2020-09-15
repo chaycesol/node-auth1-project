@@ -1,46 +1,38 @@
 const express = require('express');
-const helmet = require('helmet');
-const cors = require('cors');
-const bcrypt = require('bcryptjs');
-const session = require('express-session');
-const KnexSessionStore = require('connect-session-knex')(session); // come back and put in (session) towards the end
+
 const server = express();
+const session = require('express-session');
+const KnexSessionStore = require('connect-session-knex')(session);
+const db = require('../data/connection');
+const protected = require('../auth/protected')
 
-//Routers
-const usersRouter = require('../users/users-router');
 const authRouter = require('../auth/auth-router');
+const userRouter = require('../users/users-router');
 
+const sessionConfig = {
+  name: 'monster',
+  secret: 'keep it secret, keep it safe',
+  cookie: {
+    maxAge: 1000 * 60 * 10, // after 10 mins the cookie expires
+    secure: process.env.COOKIE_SECURE || false, // if true, cookie is only sent over https
+    httpOnly: true, // JS cannot touch this cookie
+  },
+  resave: false,
+  saveUninitialized: true, // GDPR Compliance, the client should drive this
+  store: new KnexSessionStore({
+    knex: db,
+    tablename: 'sessions',
+    sidfieldname: 'sid',
+    createtable: true,
+    clearInterval: 1000 * 60 * 60, // deleted expired sessions every hour
+  }),
+};
 
-//Middleware
-server.use(helmet());
 server.use(express.json());
-server.use(logger());
+server.use(session(sessionConfig));
 
-server.use('/api/users', usersRouter); 
-// server.use("/api/users", protected, usersRouter); //uncomment this one out when you're ready for protected roots
 server.use('/api/auth', authRouter);
+server.use('/api/users', protected, userRouter);
 
-// Base endpoint
-server.get('/', (req, res) => {
-    res.json({ api: "up" });
-  });
-  
-  function protected(req, res, next) {
-    // if user logged import 
-    // otherwise
-    if(req.session.username) {
-        next();
-    } else {
-      res.status(401).json({message: 'please sign in to continue', session: req.session})
-    }
-    
-  }
-
-function logger(req, res, next) {
-    return function (req, res, next) {
-      console.log(`a ${req.method} request was made to ${req.url} at ${new Date()}`);
-      next();
-    }
-  }
 
 module.exports = server;

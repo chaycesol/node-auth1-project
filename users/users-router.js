@@ -1,16 +1,16 @@
 const express = require('express');
 
-const Users = require('./users-model');
+const Users = require('../auth/auth-model');
 
 const router = express.Router();
 
 router.get('/', (req, res) => {
-    Users.find()
-        .then(users => {
-            res.status(200).json(users);
-        })
-        .catch(err => {
-            res.send(err);
+    Users.getAll()
+      .then((users) => {
+        res.status(200).json(users);
+      })
+      .catch((error) => {
+            res.status(404).json({ message: error.message });
         })
 })
 
